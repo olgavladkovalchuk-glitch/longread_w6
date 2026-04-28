@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Финальный этап: Упаковка, Деплой и Обратная связь</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Подключаем библиотеку для конфетти -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+/* === БАЗОВЫЕ СТИЛИ === */
+*{box-sizing:border-box;margin:0;padding:0}
+[style*="JetBrains"],code,pre,.tag,.section-title,.btn,.explain-code{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+body{background:#050d12;color:#f0f7fb;font-family:'Inter',sans-serif;line-height:1.6;min-height:100vh;display:flex;justify-content:center;padding:40px 20px;overflow-x:hidden}
+.page{max-width:720px;width:100%}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:2px;padding:4px 10px;border-radius:4px;color:#c45cdb;background:rgba(196,92,219,.12);border:1px solid rgba(196,92,219,.25);margin-bottom:14px}
+h1{font-size:clamp(24px,4vw,32px);font-weight:700;line-height:1.2;margin-bottom:8px}
+.subtitle{font-size:15px;color:#7a9bb0;margin-bottom:30px}
+h2{font-size:20px;font-weight:600;margin:30px 0 16px;color:#fff;}
+
+code{font-family:'JetBrains Mono',monospace;font-size:12px;background:#020810;padding:2px 6px;border-radius:3px;border:1px solid #1e3548;color:#2dd4e4}
+
+/* === ПОСЛЕДОВАТЕЛЬНОЕ ОТКРЫТИЕ ШАГОВ === */
+.step-hidden { display: none; opacity: 0; }
+.step-visible { display: block; animation: fadeIn 0.8s ease forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === ОБУЧАЮЩИЕ БЛОКИ И ВИДЕО === */
+.module-block { background: #0a131a; border: 1px solid #1e3548; border-radius: 8px; margin-bottom: 24px; overflow: hidden; }
+.module-header { padding: 16px 20px; background: rgba(45,212,228,0.05); border-bottom: 1px solid #1e3548; display: flex; align-items: center; gap: 12px; }
+.step-num { background: #2dd4e4; color: #050d12; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; flex-shrink: 0; }
+.module-header h3 { font-size: 16px; font-weight: 600; color: #fff; margin: 0; }
+.module-body { padding: 20px; }
+.module-desc { font-size: 15px; color: #a0c8d8; margin-bottom: 16px; line-height: 1.6; }
+
+/* Адаптивный контейнер для видео Kinescope (пропорции 16:9) */
+.iframe-wrap { position: relative; width: 100%; padding-bottom: 56.25%; background: #020810; border: 1px solid #1e3548; border-radius: 6px; margin-bottom: 16px; overflow: hidden; }
+.iframe-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+/* === ИНТЕРАКТИВНЫЙ КОД И ПРОМПТЫ === */
+pre { background: #020810; border: 1px solid #1e3548; border-radius: 6px; padding: 16px; overflow-x: auto; margin: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+pre code { font-size: 13px; line-height: 1.8; color: #f0f7fb; background: transparent; border: none; padding: 0;}
+.code-piece { cursor: pointer; transition: all 0.2s; border-radius: 4px; padding: 2px 4px; display: inline-block; }
+.code-piece:hover { background: rgba(45,212,228,0.15); }
+.code-piece.active { background: rgba(45,212,228,0.2); box-shadow: inset 0 -2px 0 0 #2dd4e4; color: #fff; }
+.explain-panel { background: #071017; border: 1px solid #1e3548; border-top: 2px solid #2dd4e4; border-radius: 0 0 6px 6px; padding: 16px 20px; min-height: 80px; margin-bottom: 16px;}
+.explain-item { display: none; }
+.explain-code { color: #2dd4e4; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-bottom: 6px; font-weight: 600; }
+.explain-text { color: #7a9bb0; font-size: 14px; line-height: 1.5; }
+
+.prompt-box { background: rgba(196,92,219,0.08); border: 1px solid rgba(196,92,219,0.3); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.prompt-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #c45cdb; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; }
+.alert-box { background: rgba(228,45,85,0.1); border-left: 4px solid #e42d55; padding: 12px 16px; font-size: 14px; color: #f0f7fb; border-radius: 0 6px 6px 0; margin: 16px 0; }
+ul.custom-list { padding-left: 20px; margin-bottom: 16px; color: #a0c8d8; font-size: 15px; }
+
+/* === КНОПКИ === */
+.btn{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;padding:14px 24px;border-radius:6px;border:none;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:8px; width: 100%; text-decoration: none;}
+.btn-submit{background:linear-gradient(90deg,#2dd4e4,#c45cdb);color:#050d12;}
+.btn-submit:hover{opacity:0.9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(45,212,228,0.3);}
+.btn-submit:disabled{opacity:0.5; cursor:not-allowed; transform: none; box-shadow: none;}
+
+.btn-next-step { background: transparent; border: 1px dashed #7a9bb0; color: #a0c8d8; margin-top: 10px; }
+.btn-next-step:hover { background: rgba(45,212,228,0.1); border-color: #2dd4e4; color: #2dd4e4; }
+
+/* === ФОРМА ОБРАТНОЙ СВЯЗИ === */
+.section{background:#0f1c25;border:1px solid #1e3548;border-radius:8px;padding:26px 24px;margin-bottom:30px}
+.section-title{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:#7a9bb0;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:#1e3548}
+
+.form-group { margin-bottom: 24px; }
+.form-label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 10px; color: #f0f7fb; }
+
+.form-control { width: 100%; background: #020810; border: 1px solid #1e3548; border-radius: 6px; padding: 12px 14px; color: #f0f7fb; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+.form-control:focus { border-color: #2dd4e4; }
+textarea.form-control { resize: vertical; min-height: 100px; }
+
+/* Радиокнопки (Звезды и Да/Нет) */
+.rating-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.rating-label { flex: 1; min-width: 40px; text-align: center; background: #020810; border: 1px solid #1e3548; border-radius: 6px; padding: 10px; cursor: pointer; transition: all 0.2s; font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+.rating-input { display: none; }
+.rating-input:checked + .rating-label { background: rgba(45,212,228,0.15); border-color: #2dd4e4; color: #2dd4e4; font-weight: bold; }
+.rating-label:hover { border-color: #7a9bb0; }
+
+/* Уведомление об отправке */
+.form-msg { display: none; padding: 12px; border-radius: 6px; text-align: center; font-size: 14px; margin-top: 16px; }
+.form-msg.success { display: block; background: rgba(45,212,228,0.1); border: 1px solid #2dd4e4; color: #2dd4e4; }
+.form-msg.error { display: block; background: rgba(228,45,85,0.1); border: 1px solid #e42d55; color: #e42d55; }
+
+/* === БЛОК ПРИЗЫВА К ДЕЙСТВИЮ (CTA) === */
+.task-card{background:linear-gradient(135deg,#0f1c25 0%,#162636 100%);border:1.5px solid #2dd4e4;border-radius:10px;padding:30px 26px;margin-bottom:40px;position:relative;overflow:hidden; text-align: center;}
+.task-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#2dd4e4,#c45cdb)}
+.cta-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; color: #fff; }
+.cta-desc { font-size: 16px; line-height: 1.6; color: #a0c8d8; margin-bottom: 24px; }
+.highlight { color: #2dd4e4; font-weight: 600; }
+.date-box { display: inline-flex; flex-direction: column; background: #020810; border: 1px solid #c45cdb; border-radius: 8px; padding: 16px 24px; margin-bottom: 20px; }
+.date-box span { font-size: 12px; color: #7a9bb0; text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace;}
+.date-box strong { font-size: 22px; color: #c45cdb; line-height: 1.2; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="tag">Модуль 5: Финал</span>
+  <h1>Упаковка, Деплой и Релиз</h1>
+  <p class="subtitle">Как показать свой образовательный проект миру, внедрить его на платформу и подвести итоги обучения.</p>
+
+  <h2>Часть 1: Публикация проекта</h2>
+
+  <!-- ШАГ 1: GitHub -->
+  <div class="module-block" id="block-1">
+    <div class="module-header">
+      <div class="step-num">1</div>
+      <h3>Заливка на GitHub Pages</h3>
+    </div>
+    <div class="module-body">
+      
+      <!-- Видео 1 (Kinescope) -->
+      <div class="iframe-wrap">
+        <iframe src="https://kinescope.io/oRryfQ6xsqRvAzwHC5CGhK" allow="autoplay; fullscreen; picture-in-picture; encrypted-media;" allowfullscreen></iframe>
+      </div>
+      
+      <p class="module-desc">Чтобы ваш код заработал в интернете, его нужно где-то разместить. GitHub — идеальный вариант для проектов. Создаем репозиторий, загружаем файлы и включаем Pages в настройках.</p>
+      
+      <!-- Кнопка перехода к шагу 2 -->
+      <button class="btn btn-next-step" onclick="revealNext('block-2', this)">Понятно, идем дальше ➔</button>
+    </div>
+  </div>
+
+  <!-- ШАГ 2: Tilda & iFrame (ИЗНАЧАЛЬНО СКРЫТ) -->
+  <div class="module-block step-hidden" id="block-2">
+    <div class="module-header">
+      <div class="step-num">2</div>
+      <h3>Вставка в Тильду (Блок Т123)</h3>
+    </div>
+    <div class="module-body">
+      
+      <!-- Видео 2 (Kinescope) -->
+      <div class="iframe-wrap">
+        <iframe src="https://kinescope.io/riTngGFqBeH6W8XYYMUnYH" allow="autoplay; fullscreen; picture-in-picture; encrypted-media;" allowfullscreen></iframe>
+      </div>
+      
+      <p class="module-desc">Когда проект лежит на GitHub, мы можем встроить его на лендинг в Тильде. Для этого используется HTML-тег <code>&lt;iframe&gt;</code>.</p>
+
+      <div class="code-breakdown">
+        <pre><code><span class="code-piece" data-explain="2-1" onclick="showExplain(this, '2-1')">&lt;iframe</span> 
+  <span class="code-piece" data-explain="2-2" onclick="showExplain(this, '2-2')">src="https://твой-логин.github.io/твой-проект/index.html"</span> 
+  <span class="code-piece" data-explain="2-3" onclick="showExplain(this, '2-3')">style="width:100%;height:100vh;border:none;display:block;"</span>&gt;
+&lt;/iframe&gt;</code></pre>
+        <div class="explain-panel">
+          <div class="explain-item" data-index="2-1">
+            <div class="explain-code">&lt;iframe&gt;</div>
+            <div class="explain-text">Тег, который создает "окно" на вашей странице, через которое виден другой сайт.</div>
+          </div>
+          <div class="explain-item" data-index="2-2">
+            <div class="explain-code">src=".../index.html"</div>
+            <div class="explain-text">Самый важный атрибут. В конце ссылки обязательно допишите <code>index.html</code>!</div>
+          </div>
+          <div class="explain-item" data-index="2-3">
+            <div class="explain-code">style="..."</div>
+            <div class="explain-text">Убираем рамки и растягиваем проект на 100% высоты экрана пользователя (100vh).</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Кнопка перехода к шагу 3 -->
+      <button class="btn btn-next-step" onclick="revealNext('block-3', this)">Изучил, идем к SCORM ➔</button>
+    </div>
+  </div>
+
+  <!-- ШАГ 3: SCORM (ИЗНАЧАЛЬНО СКРЫТ) -->
+  <div class="module-block step-hidden" id="block-3">
+    <div class="module-header">
+      <div class="step-num">3</div>
+      <h3>Сборка SCORM-пакета (для LMS)</h3>
+    </div>
+    <div class="module-body">
+      
+      <!-- Видео 3 (Kinescope) -->
+      <div class="iframe-wrap">
+        <iframe src="https://kinescope.io/vGhPyy1wwEic7893Sj4FX6" allow="autoplay; fullscreen; picture-in-picture; encrypted-media;" allowfullscreen></iframe>
+      </div>
+      
+      <p class="module-desc">Если вы загружаете проект в полноценную LMS (Эквио, iSpring и др.), его нужно упаковать в ZIP-архив по стандарту SCORM.</p>
+      
+      <div class="prompt-box">
+        <div class="prompt-label">Скопируй промпт для ИИ:</div>
+        <code>Напиши полный код для файла imsmanifest.xml (SCORM 1.2). У меня образовательный интерактивный лонгрид. Главный запускаемый файл называется index.html. Также в корне лежат папки [video, images]. Название курса: "Мой проект". Сделай код готовым к копированию.</code>
+      </div>
+
+      <div class="alert-box">
+        <strong>⚠️ Важное правило архивации:</strong><br> 
+        Когда будешь делать ZIP-архив, <strong>не архивируй саму папку целиком</strong>. Зайди внутрь папки, выдели все файлы и нажми «Добавить в архив».
+      </div>
+
+      <!-- Кнопка перехода к Анкете -->
+      <button class="btn btn-next-step" onclick="revealNext('block-form', this)">Всё ясно, переходим к финалу ➔</button>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- РАЗДЕЛ 2: АНКЕТА (ИЗНАЧАЛЬНО СКРЫТА)       -->
+  <!-- ========================================== -->
+  <div class="section step-hidden" id="block-form">
+    <div class="section-title">Финальный чек-поинт</div>
+    <p class="module-desc">Позади большой путь! Заполни эту форму, чтобы открыть доступ к финальной встрече.</p>
+
+    <form id="feedbackForm" name="feedbackForm">
+      
+      <div class="form-group">
+        <label class="form-label">Ваше Имя / Фамилия</label>
+        <input type="text" class="form-control" name="name" placeholder="Как к вам обращаться?">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">1. Оцените уровень подачи материала (от 1 до 5)</label>
+        <div class="rating-group">
+          <input type="radio" id="m1" name="materialRating" value="1" class="rating-input"><label for="m1" class="rating-label">1</label>
+          <input type="radio" id="m2" name="materialRating" value="2" class="rating-input"><label for="m2" class="rating-label">2</label>
+          <input type="radio" id="m3" name="materialRating" value="3" class="rating-input"><label for="m3" class="rating-label">3</label>
+          <input type="radio" id="m4" name="materialRating" value="4" class="rating-input"><label for="m4" class="rating-label">4</label>
+          <input type="radio" id="m5" name="materialRating" value="5" class="rating-input" checked><label for="m5" class="rating-label">5</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">2. Оцените уровень поддержки (от 1 до 5)</label>
+        <div class="rating-group">
+          <input type="radio" id="s1" name="supportRating" value="1" class="rating-input"><label for="s1" class="rating-label">1</label>
+          <input type="radio" id="s2" name="supportRating" value="2" class="rating-input"><label for="s2" class="rating-label">2</label>
+          <input type="radio" id="s3" name="supportRating" value="3" class="rating-input"><label for="s3" class="rating-label">3</label>
+          <input type="radio" id="s4" name="supportRating" value="4" class="rating-input"><label for="s4" class="rating-label">4</label>
+          <input type="radio" id="s5" name="supportRating" value="5" class="rating-input" checked><label for="s5" class="rating-label">5</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">3. Чего вам хватило, а чего не хватило?</label>
+        <textarea class="form-control" name="comments" placeholder="Опишите свои впечатления. Что добавить, что убрать?"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">4. Порекомендовали бы вы этот курс коллегам?</label>
+        <div class="rating-group" style="max-width: 300px;">
+          <input type="radio" id="rec_yes" name="recommend" value="Да" class="rating-input" checked>
+          <label for="rec_yes" class="rating-label" style="font-family:'Inter',sans-serif">Да</label>
+          <input type="radio" id="rec_no" name="recommend" value="Нет" class="rating-input">
+          <label for="rec_no" class="rating-label" style="font-family:'Inter',sans-serif">Нет</label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-submit" id="submitBtn">Отправить анкету 🚀</button>
+      <div id="formMessage" class="form-msg"></div>
+    </form>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- РАЗДЕЛ 3: СЕКРЕТНЫЙ БЛОК (ПОСЛЕ АНКЕТЫ)    -->
+  <!-- ========================================== -->
+  <div class="task-card step-hidden" id="block-cta">
+    <div class="cta-title">Анкета принята! 🎉</div>
+    <p class="cta-desc">Вы официально дошли до конца материалов курса. Остался только финальный звонок.</p>
+    
+    <div class="date-box">
+      <span>Дедлайн сдачи проектов:</span>
+      <strong>3 Мая, до 23:59 (МСК)</strong>
+    </div>
+
+    <p class="cta-desc" style="margin-bottom: 24px;">
+      <span class="highlight">Итоговая защита и разбор проектов:</span><br>
+      Встречаемся онлайн — <strong>4 Мая в 19:00 (МСК)</strong>.<br>Готовьте проекты, вопросы и хорошее настроение!
+    </p>
+
+    <a href="https://4h5mht0c.ktalk.ru/qa1vbe3t1860" target="_blank" class="btn btn-submit" style="width: auto; padding: 16px 32px; font-size: 14px;">
+      🔗 Подключиться ко встрече (KTalk)
+    </a>
+  </div>
+
+</div>
+
+<script>
+// === ПОСЛЕДОВАТЕЛЬНОЕ ОТКРЫТИЕ БЛОКОВ ===
+function revealNext(targetId, btnElement) {
+  // Прячем нажатую кнопку
+  btnElement.style.display = 'none';
+  
+  // Показываем следующий блок
+  const nextBlock = document.getElementById(targetId);
+  if(nextBlock) {
+    nextBlock.classList.remove('step-hidden');
+    nextBlock.classList.add('step-visible');
+    
+    // Плавный скролл к новому блоку через небольшую паузу
+    setTimeout(() => {
+      nextBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+  }
+}
+
+// === ИНТЕРАКТИВНЫЙ РАЗБОР КОДА ===
+function showExplain(el, id) {
+  var block = el.closest('.code-breakdown');
+  if(!block) return;
+  var pieces = block.querySelectorAll('.code-piece');
+  for (var i = 0; i < pieces.length; i++) pieces[i].classList.remove('active');
+  el.classList.add('active');
+
+  var items = block.querySelectorAll('.explain-item');
+  for (var j = 0; j < items.length; j++) items[j].style.display = 'none';
+
+  var target = block.querySelector('.explain-item[data-index="' + id + '"]');
+  if (target) target.style.display = 'block';
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  var blocks = document.querySelectorAll('.code-breakdown');
+  for(var i = 0; i < blocks.length; i++) {
+    var firstPiece = blocks[i].querySelector('.code-piece');
+    if (firstPiece) showExplain(firstPiece, firstPiece.getAttribute('data-explain'));
+  }
+});
+
+// === ЛОГИКА ОТПРАВКИ ФОРМЫ ===
+const form = document.forms['feedbackForm'];
+const scriptURL = 'https://script.google.com/macros/s/AKfycbwHc8s4L0x0CuWxCgSpLrRCujh9gRxHL5bdqGu_18RFiXn33DDkwqW4WLGrs6MqbFaR5w/exec';
+
+form.addEventListener('submit', e => {
+  e.preventDefault(); // Останавливаем стандартную отправку
+  
+  const btn = document.getElementById('submitBtn');
+  const msgBox = document.getElementById('formMessage');
+  
+  btn.disabled = true;
+  btn.innerText = "Отправка...";
+  msgBox.style.display = 'none';
+
+  fetch(scriptURL, { 
+    method: 'POST', 
+    body: new FormData(form),
+    mode: 'no-cors' 
+  })
+  .then(response => {
+    btn.innerText = "Отправлено!";
+    btn.style.background = "#2dd4e4";
+    
+    // ЗАПУСК КОНФЕТТИ! 🎉
+    var duration = 3000;
+    var end = Date.now() + duration;
+    (function frame() {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#2dd4e4', '#c45cdb', '#ffffff']
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#2dd4e4', '#c45cdb', '#ffffff']
+      });
+      if (Date.now() < end) { requestAnimationFrame(frame); }
+    }());
+
+    // Открываем финальный секретный блок с дедлайном
+    const finalBlock = document.getElementById('block-cta');
+    finalBlock.classList.remove('step-hidden');
+    finalBlock.classList.add('step-visible');
+    
+    setTimeout(() => {
+      finalBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 800);
+
+    // Прячем форму, чтобы не отправили дважды
+    setTimeout(() => {
+       form.style.display = 'none';
+       document.querySelector('.section-title').innerText = "Анкета успешно отправлена!";
+    }, 1500);
+    
+  })
+  .catch(error => {
+    console.error('Ошибка!', error.message);
+    btn.disabled = false;
+    btn.innerText = "Попробовать снова";
+    msgBox.innerText = "Произошла ошибка соединения.";
+    msgBox.classList.add('error');
+    msgBox.style.display = 'block';
+  });
+});
+</script>
+</body>
+</html>
